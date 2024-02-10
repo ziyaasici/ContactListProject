@@ -189,16 +189,17 @@ Resources:
           yum install git -y
           pip3 install flask
           pip3 install flask_mysql
-          # echo "contactlistproject.czeuyommu4bl.us-east-1.rds.amazonaws.com" > /home/ec2-user/dbserver.endpoint
-          # echo "${MyDBURI}" > /home/ec2-user/dbserver.endpoint
           yum install -y aws-cli
-          MyDBURI=$(aws rds describe-db-instances --query "DBInstances[0].Endpoint.Address" --output text)
+          aws configure set aws_access_key_id AKIAZBO674JSJL55LUP4
+          aws configure set aws_secret_access_key 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
+          aws configure set region us-east-1
+          aws configure set output text
+          MyDBURI=$(aws rds describe-db-instances --db-instance-identifier contactlistproject --query "DBInstances[0].Endpoint.Address" --output text)
           echo "${MyDBURI}" > /home/ec2-user/dbserver.endpoint
           cd /home/ec2-user
           git clone https://github.com/ziyaasici/ContactListProject
           cd ContactListProject
           python3 contact-list-app.py
-          # $MyDBURI: !GetAtt MyDatabaseServer.Endpoint.Address
       LaunchTemplateName: LaunchTemplate
       VersionDescription: 'v1'
 
@@ -294,7 +295,7 @@ Resources:
 Outputs:
   DBEndPoint:
     Description: Endpoint of the RDS instance
-    Value: !GetAtt MyDBInstance.Endpoint.Address
+    Value: !GetAtt MySQLDB.Endpoint.Address
   LoadBalancerDNS:
     Description: DNS of the Load Balancer
     Value: !GetAtt LoadBalancer.DNSName
