@@ -25,7 +25,7 @@ cursor = connection.cursor()
 
 def init_contact_list_db():
     contact_table = """
-    CREATE TABLE IF NOT EXISTS techpro.contact_list(
+    CREATE TABLE IF NOT EXISTS ContactListDB.contact_list(
     id INT NOT NULL AUTO_INCREMENT,
     name VARCHAR(100) NOT NULL,
     number VARCHAR(100) NOT NULL,
