@@ -189,7 +189,7 @@ Resources:
           echo "${MyDBURI}" > /home/ec2-user/dbserver.endpoint
           cd /home/ec2-user
           git clone https://github.com/ziyaasici/ContactListProject
-          cd Contact-List-Application
+          cd ContactListProject
           python3 contact-list-app.py
           - MyDBURI: !GetAtt MyDatabaseServer.Endpoint.Address
       LaunchTemplateName: LaunchTemplate
