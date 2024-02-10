@@ -194,7 +194,7 @@ Resources:
           git clone https://github.com/ziyaasici/ContactListProject
           cd ContactListProject
           python3 contact-list-app.py
-          - MyDBURI: !GetAtt MyDatabaseServer.Endpoint.Address
+          $MyDBURI: !GetAtt MyDatabaseServer.Endpoint.Address
       LaunchTemplateName: LaunchTemplate
       VersionDescription: 'v1'
 
@@ -287,8 +287,14 @@ Resources:
         - Key: 'Name'
           Value: 'ContactListDB'
 
-# Outputs:
-
+Outputs:
+  DBEndPoint:
+    Description: Endpoint of the RDS instance
+    Value: !GetAtt MyDBInstance.Endpoint.Address
+  LoadBalancerDNS:
+    Description: DNS of the Load Balancer
+    Value: !GetAtt LoadBalancer.DNSName
+    
 
 ### TODO : Git Repodaki Python dosyasindaki DB UserName ve Password Update edilmesi lazim
           # echo "${MyDBURI}" > /home/ec2-user/dbserver.endpoint
@@ -298,3 +304,7 @@ Resources:
           # python3 contact-list-app.py
           # - MyDBURI: !GetAtt MyDatabaseServer.Endpoint.Address
     #### Bu kisimdaki RDS Endpointin dbserver.endpoint dosyasina yazmada sorun oluyor.
+
+
+    ### Autoscaling de sorun var makinalari surekli terminate edip yenisini aciyor
+    ### 
