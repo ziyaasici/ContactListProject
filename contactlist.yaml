@@ -196,7 +196,6 @@ Resources:
           python3 /home/ec2-user/ContactListProject/contact-list-app.py
       LaunchTemplateName: LaunchTemplate
       VersionDescription: 'v1'
-      
 
 # ------------------------------------------
 # ------- LOADBALANCER CONFIGURATIONS ------
@@ -288,9 +287,9 @@ Resources:
           Value: 'ContactListDB'
 
 Outputs:
-  DBEndPoint:
-    Description: Endpoint of the RDS instance
-    Value: !GetAtt MySQLDB.Endpoint.Address
+  # DBEndPoint:
+  #   Description: Endpoint of the RDS instance
+  #   Value: !GetAtt MySQLDB.Endpoint.Address
   LoadBalancerDNS:
     Description: DNS of the Load Balancer
     Value: !GetAtt LoadBalancer.DNSName
