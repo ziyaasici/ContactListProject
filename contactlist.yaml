@@ -192,8 +192,9 @@ Resources:
           pip3 install boto3
           cd /home/ec2-user
           git clone https://github.com/ziyaasici/ContactListProject
-          python3 /home/ec2-user/fetch_rds_endpoint.py
-          python3 /home/ec2-user/ContactListProject/contact-list-app.py
+          cd ContactListProject
+          python3 fetch_rds_endpoint.py
+          python3 contact-list-app.py
       LaunchTemplateName: LaunchTemplate
       VersionDescription: 'v1'
 
