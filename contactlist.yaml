@@ -186,10 +186,10 @@ Resources:
           yum install git -y
           pip3 install flask
           pip3 install flask_mysql
-          echo "${MyDBURI}" > /home/ec2-user/dbserver.endpoint
+          echo "contactlistproject.czeuyommu4bl.us-east-1.rds.amazonaws.com" > /home/ec2-user/dbserver.endpoint
           cd /home/ec2-user
           git clone https://github.com/ziyaasici/ContactListProject
-          cd Contact-List-Application
+          cd ContactListProject
           python3 contact-list-app.py
           - MyDBURI: !GetAtt MyDatabaseServer.Endpoint.Address
       LaunchTemplateName: LaunchTemplate
@@ -285,3 +285,13 @@ Resources:
           Value: 'ContactListDB'
 
 # Outputs:
+
+
+### TODO : Git Repodaki Python dosyasindaki DB UserName ve Password Update edilmesi lazim
+          # echo "${MyDBURI}" > /home/ec2-user/dbserver.endpoint
+          # cd /home/ec2-user
+          # git clone https://github.com/ziyaasici/ContactListProject
+          # cd ContactListProject
+          # python3 contact-list-app.py
+          # - MyDBURI: !GetAtt MyDatabaseServer.Endpoint.Address
+    #### Bu kisimdaki RDS Endpointin dbserver.endpoint dosyasina yazmada sorun oluyor.
