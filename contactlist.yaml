@@ -1,0 +1,287 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: |
+  This YAML is resolving AWS Contact List Project
+Parameters:
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: ziya
+
+Resources:
+
+# ------------------------------------------
+# ----------- VPC CONFIGURATIONS -----------
+# ------------------------------------------
+
+  # Create a VPC
+  ProjVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags: 
+        - Key: 'Name'
+          Value: 'Proj-VPC'
+
+  # Create an Internet Gateway
+  ProjIGW:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags: 
+        - Key: 'Name'
+          Value: 'Proj-InternetGW'
+
+  # Attach Internet Gateway to VPC
+  AttachGateway:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      VpcId: !Ref ProjVPC
+      InternetGatewayId: !Ref ProjIGW
+
+  # Create a Public Subnet under us-east-1a
+  Public1a:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1a
+      CidrBlock: 10.0.1.0/24
+      VpcId: !Ref ProjVPC
+      MapPublicIpOnLaunch: true
+      Tags: 
+        - Key: 'Name'
+          Value: 'Public1a'
+
+  # Create a Public Subnet under us-east-1b
+  Public1b:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1b
+      CidrBlock: 10.0.2.0/24
+      VpcId: !Ref ProjVPC
+      MapPublicIpOnLaunch: true
+      Tags: 
+        - Key: 'Name'
+          Value: 'Public1b'
+
+  # Create a Public Route table
+  PublicRT:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref ProjVPC
+      Tags: 
+        - Key: 'Name'
+          Value: 'PublicRT'
+
+  # New Route for Public subnets to access Internet Gateway
+  IGWRoute:
+    Type: 'AWS::EC2::Route'
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref PublicRT
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId: !Ref ProjIGW
+
+  # Associate Public Subnet under Public Route Table
+  PublicRTASS1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRT
+      SubnetId: !Ref Public1a
+
+# ------------------------------------------
+# ------ SECURITY GROUP CONFIGURATIONS -----
+# ------------------------------------------
+
+  # Create Security Group for Auto Scaling Group
+  EC2SecGrp:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: 22 Full - 80 Load Balancer Only
+      GroupName: EC2SecGrp
+      SecurityGroupIngress: 
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !Ref ELBSecGrp
+      VpcId: !Ref ProjVPC
+      Tags: 
+        - Key: 'Name'
+          Value: 'EC2SecGrp'
+
+  # Create Security Group for Auto Scaling Group
+  ELBSecGrp:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: 22 - 80 - 443
+      GroupName: ELBSecGrp
+      SecurityGroupIngress: 
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+      VpcId: !Ref ProjVPC
+      Tags: 
+        - Key: 'Name'
+          Value: 'ELBSecGrp'
+
+  # Create a Security Group for RDS
+  DBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable MySQL access
+      GroupName: DBSecGrp
+      VpcId: !Ref ProjVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          SourceSecurityGroupId: !Ref EC2SecGrp
+      Tags: 
+        - Key: 'Name'
+          Value: 'DBSecurityGroup'
+
+  # Create a Subnet Group for DB Subnets
+  DBSubnetGrp:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group for RDS
+      SubnetIds:
+        - !Ref Public1a
+        - !Ref Public1b
+      Tags: 
+        - Key: 'Name'
+          Value: 'DBSubnetGrp'
+
+# ------------------------------------------
+# ----- LAUNCH TEMPLATE CONFIGURATIONS -----
+# ------------------------------------------
+
+# TODO : Eger Launch Template'e Security Group belirtirsek 
+# Security Group ve Subnet(AutoScaling'den aliyor) Birlikte Kullanilamaz Hatasi Veriyor
+#Security Group Belirtmezsek bu kezde EC2'lari default Sec Grp da launch ediyor
+  LaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData:
+        ImageId: ami-0cff7528ff583bf9a
+        InstanceType: t2.micro
+        KeyName: !Ref KeyName
+        SecurityGroupIds:
+          - !Ref EC2SecGrp
+        UserData: !Base64 |
+          #! /bin/bash
+          yum update -y
+          yum install python3 -y
+          yum install git -y
+          pip3 install flask
+          pip3 install flask_mysql
+          echo "${MyDBURI}" > /home/ec2-user/dbserver.endpoint
+          cd /home/ec2-user
+          git clone https://github.com/ziyaasici/ContactListProject
+          cd Contact-List-Application
+          python3 contact-list-app.py
+          - MyDBURI: !GetAtt MyDatabaseServer.Endpoint.Address
+      LaunchTemplateName: LaunchTemplate
+      VersionDescription: 'v1'
+
+# ------------------------------------------
+# ------- LOADBALANCER CONFIGURATIONS ------
+# ------------------------------------------
+
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      SecurityGroups:
+        - !Ref ELBSecGrp
+      Subnets: 
+        - !Ref Public1a
+        - !Ref Public1b
+      Type: application
+      Tags: 
+        - Key: 'Name'
+          Value: 'LoadBalancer'
+
+  ELBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref TargetGrp
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 80
+      Protocol: HTTP
+
+  TargetGrp:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 10
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 5
+      Port: 80
+      Protocol: HTTP
+      UnhealthyThresholdCount: 3
+      VpcId: !Ref ProjVPC
+      Tags: 
+        - Key: 'Name'
+          Value: 'TargetGrp'
+
+# ------------------------------------------
+# ------- AUTO SCALING CONFIGURATIONS ------
+# ------------------------------------------
+
+  AutoScaling:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      DesiredCapacity: "2"
+      HealthCheckGracePeriod: 90
+      HealthCheckType: ELB
+      LaunchTemplate:
+        LaunchTemplateId: !Ref LaunchTemplate
+        Version: !GetAtt LaunchTemplate.LatestVersionNumber
+      MaxSize: "3" # Required
+      MinSize: "2" # Required
+      VPCZoneIdentifier: [!Ref Public1a]
+      TargetGroupARNs:
+        - !Ref TargetGrp
+      Tags: 
+        - Key: 'Name'
+          Value: 'AutoScaling'
+          PropagateAtLaunch: true
+
+# ------------------------------------------
+# ----------- RDS CONFIGURATIONS -----------
+# ------------------------------------------
+
+  # Create RDS Instance
+  MySQLDB:
+    Type: 'AWS::RDS::DBInstance'
+    Properties:
+      DBInstanceIdentifier: ContactListProject
+      Engine: mysql
+      EngineVersion: 8.0.35
+      DBInstanceClass: db.t2.micro
+      MasterUsername: admin
+      MasterUserPassword: Admin12345
+      AllocatedStorage: 20
+      DBSubnetGroupName: !Ref DBSubnetGrp
+      MultiAZ: false
+      VPCSecurityGroups: 
+        - !Ref DBSecurityGroup
+      DBName: ContactListDB
+      AutoMinorVersionUpgrade: false
+      Tags: 
+        - Key: 'Name'
+          Value: 'ContactListDB'
+
+# Outputs:
