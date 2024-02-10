@@ -196,6 +196,7 @@ Resources:
           python3 /home/ec2-user/ContactListProject/contact-list-app.py
       LaunchTemplateName: LaunchTemplate
       VersionDescription: 'v1'
+      
 
 # ------------------------------------------
 # ------- LOADBALANCER CONFIGURATIONS ------
