@@ -105,7 +105,8 @@ Resources:
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
-          SourceSecurityGroupId: !Ref ELBSecGrp
+          #SourceSecurityGroupId: !Ref ELBSecGrp
+          CidrIp: 0.0.0.0/0
       VpcId: !Ref ProjVPC
       Tags: 
         - Key: 'Name'
@@ -146,7 +147,8 @@ Resources:
         - IpProtocol: tcp
           FromPort: 3306
           ToPort: 3306
-          SourceSecurityGroupId: !Ref EC2SecGrp
+          #SourceSecurityGroupId: !Ref EC2SecGrp
+          CidrIp: 0.0.0.0/0
       Tags: 
         - Key: 'Name'
           Value: 'DBSecurityGroup'
@@ -186,7 +188,8 @@ Resources:
           yum install git -y
           pip3 install flask
           pip3 install flask_mysql
-          echo "contactlistproject.czeuyommu4bl.us-east-1.rds.amazonaws.com" > /home/ec2-user/dbserver.endpoint
+          #echo "contactlistproject.czeuyommu4bl.us-east-1.rds.amazonaws.com" > /home/ec2-user/dbserver.endpoint
+          echo "${MyDBURI}" > /home/ec2-user/dbserver.endpoint
           cd /home/ec2-user
           git clone https://github.com/ziyaasici/ContactListProject
           cd ContactListProject
@@ -278,7 +281,7 @@ Resources:
       MultiAZ: false
       VPCSecurityGroups: 
         - !Ref DBSecurityGroup
-      DBName: ContactListDB
+      DBName: contactlist
       AutoMinorVersionUpgrade: false
       Tags: 
         - Key: 'Name'
