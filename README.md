@@ -19,12 +19,4 @@ The CloudFormation template in this repository provisions various AWS resources 
 Before deploying this CloudFormation template, ensure you have the following:
 
 - An AWS account with appropriate permissions to create the resources defined in the template.
-- AWS CLI installed and configured on your local machine.
 - Basic understanding of AWS services and CloudFormation.
-
-## Deployment Instructions
-
-1. Clone this repository to your local machine:
-
-   ```bash
-   git clone https://github.com/ziyaasici/ContactListProject.git
