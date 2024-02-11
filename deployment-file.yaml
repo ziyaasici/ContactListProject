@@ -1,0 +1,5 @@
+template-file-path: ./contactlist.yaml
+Tags:
+  Name: 'gitsync'
+  Project: 'ContactListProject'
+  
