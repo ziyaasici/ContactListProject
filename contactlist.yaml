@@ -5,9 +5,6 @@ Parameters:
   KeyName:
     Type: AWS::EC2::KeyPair::KeyName
     Default: ziya
-  Certificate:
-    Type: AWS::CertificateManager::Certificate
-    Default: arn:aws:acm:us-east-1:621627302500:certificate/146ad63e-1914-4958-b35f-69b1b0a031f0
 
 Resources:
 
@@ -172,9 +169,7 @@ Resources:
 # ----- LAUNCH TEMPLATE CONFIGURATIONS -----
 # ------------------------------------------
 
-# TODO : Eger Launch Template'e Security Group belirtirsek 
-# Security Group ve Subnet(AutoScaling'den aliyor) Birlikte Kullanilamaz Hatasi Veriyor
-#Security Group Belirtmezsek bu kezde EC2'lari default Sec Grp da launch ediyor
+  # Create LaunchTemplate for AutoScaling
   LaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
     DependsOn: MySQLDB
@@ -205,6 +200,7 @@ Resources:
 # ------- LOADBALANCER CONFIGURATIONS ------
 # ------------------------------------------
 
+  # Create LoadBalancer
   LoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
@@ -218,6 +214,7 @@ Resources:
         - Key: 'Name'
           Value: 'LoadBalancer'
 
+  # Create HTTP Listener
   HTTPListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
@@ -228,6 +225,7 @@ Resources:
       Port: 80
       Protocol: HTTP
 
+  # Create HTTPS Listener
   HTTPSListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
@@ -238,8 +236,9 @@ Resources:
       Port: 443
       Protocol: HTTPS
       Certificates:
-           - CertificateArn: !Ref Certificate
+           - CertificateArn: arn:aws:acm:us-east-1:621627302500:certificate/146ad63e-1914-4958-b35f-69b1b0a031f0
 
+  # Create Target Group for LoadBalancer
   TargetGrp:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
@@ -258,6 +257,7 @@ Resources:
 # ------- AUTO SCALING CONFIGURATIONS ------
 # ------------------------------------------
 
+  # Create AutoScaling Group
   AutoScaling:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
@@ -302,6 +302,20 @@ Resources:
         - Key: 'Name'
           Value: 'ContactListDB'
 
+# ------------------------------------------
+# -------- ROUTE 53 CONFIGURATIONS ---------
+# ------------------------------------------
+
+  Route53Record:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: Route53Record
+      Name: www.zasici.com
+      Type: A
+      AliasTarget:
+        HostedZoneId: Route53Record
+        DNSName: !GetAtt LoadBalancer.DNSName
+
 Outputs:
   # DBEndPoint:
   #   Description: Endpoint of the RDS instance
@@ -309,17 +323,4 @@ Outputs:
   LoadBalancerDNS:
     Description: DNS of the Load Balancer
     Value: !GetAtt LoadBalancer.DNSName
-    
-
-### TODO : Git Repodaki Python dosyasindaki DB UserName ve Password Update edilmesi lazim
-          # echo "${MyDBURI}" > /home/ec2-user/dbserver.endpoint
-          # cd /home/ec2-user
-          # git clone https://github.com/ziyaasici/ContactListProject
-          # cd ContactListProject
-          # python3 contact-list-app.py
-          # - MyDBURI: !GetAtt MyDatabaseServer.Endpoint.Address
-    #### Bu kisimdaki RDS Endpointin dbserver.endpoint dosyasina yazmada sorun oluyor.
-
-
-    ### Autoscaling de sorun var makinalari surekli terminate edip yenisini aciyor
-    ### 
+  
