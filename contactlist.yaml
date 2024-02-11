@@ -306,14 +306,14 @@ Resources:
 # -------- ROUTE 53 CONFIGURATIONS ---------
 # ------------------------------------------
 
-  Route53Record:
+  DNSRecord:
     Type: AWS::Route53::RecordSet
     Properties:
-      HostedZoneId: Route53Record
-      Name: www.zasici.com
+      HostedZoneName: zasici.com.
+      Name: project.zasici.com
       Type: A
       AliasTarget:
-        HostedZoneId: Route53Record
+        HostedZoneId: !GetAtt LoadBalancer.CanonicalHostedZoneID
         DNSName: !GetAtt LoadBalancer.DNSName
 
 Outputs:
