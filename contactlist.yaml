@@ -5,6 +5,8 @@ Parameters:
   KeyName:
     Type: AWS::EC2::KeyPair::KeyName
     Default: ziya
+    
+###TEST GITSYNC
 
 Resources:
 
