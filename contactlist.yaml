@@ -107,8 +107,11 @@ Resources:
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
-          #SourceSecurityGroupId: !Ref ELBSecGrp
-          CidrIp: 0.0.0.0/0
+          SourceSecurityGroupId: !Ref ELBSecGrp
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          SourceSecurityGroupId: !Ref ELBSecGrp
       VpcId: !Ref ProjVPC
       Tags: 
         - Key: 'Name'
@@ -149,8 +152,7 @@ Resources:
         - IpProtocol: tcp
           FromPort: 3306
           ToPort: 3306
-          #SourceSecurityGroupId: !Ref EC2SecGrp
-          CidrIp: 0.0.0.0/0
+          SourceSecurityGroupId: !Ref EC2SecGrp
       Tags: 
         - Key: 'Name'
           Value: 'DBSecurityGroup'
