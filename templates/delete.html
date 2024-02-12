@@ -80,8 +80,13 @@
     {% endif %}
   </form>
 
-  <a href="/add" class="button">Add / Update Contact</a>
-  <a href="/#" class="button">Search Contact</a>
+  <form action="/add" method="get">
+    <button type="submit">Add / Update Contact</button>
+  </form>
+  
+  <form action="/" method="get">
+    <button type="submit">Search Contact</button>
+  </form>
   
   <p class="footnote"><i>This app is developed in Python by <b>{{ developer_name }}</b> and deployed with Flask on AWS Cloud using Clouldformation Service.</i></p>
 </body>
