@@ -8,7 +8,7 @@ Parameters:
     Default: ziya
   DomainName:
     Type: String
-    Default: zasici.com
+    Default: zasici.com.
   Allias:
     Type: String
     Default: project.zasici.com
@@ -328,12 +328,10 @@ Resources:
       AliasTarget:
         HostedZoneId: !GetAtt LoadBalancer.CanonicalHostedZoneID
         DNSName: !GetAtt LoadBalancer.DNSName
-
-Outputs:
-  # DBEndPoint:
-  #   Description: Endpoint of the RDS instance
-  #   Value: !GetAtt MySQLDB.Endpoint.Address
-  LoadBalancerDNS:
-    Description: DNS of the Load Balancer
-    Value: !GetAtt LoadBalancer.DNSName
   
+Outputs:
+  WebsiteURL:
+    Value: !Sub 
+      - https://${Address}
+      - Address: !Ref Allias
+    Description: Contact List Application Website URL
