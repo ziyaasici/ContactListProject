@@ -308,6 +308,7 @@ Resources:
 # -------- ROUTE 53 CONFIGURATIONS ---------
 # ------------------------------------------
 
+  # Create A Record for DNS to LoadBalancer
   DNSRecord:
     Type: AWS::Route53::RecordSet
     Properties:
