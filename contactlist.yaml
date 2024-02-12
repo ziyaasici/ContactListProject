@@ -1,12 +1,17 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: |
   This YAML is resolving AWS Contact List Project
+
 Parameters:
   KeyName:
     Type: AWS::EC2::KeyPair::KeyName
     Default: ziya
-    
-###TEST GITSYNC
+  DomainName:
+    Type: String
+    Default: zasici.com
+  Allias:
+    Type: String
+    Default: project.zasici.com
 
 Resources:
 
@@ -125,10 +130,6 @@ Resources:
       GroupName: ELBSecGrp
       SecurityGroupIngress: 
         - IpProtocol: tcp
-          FromPort: 22
-          ToPort: 22
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
           CidrIp: 0.0.0.0/0
@@ -176,7 +177,6 @@ Resources:
   # Create LaunchTemplate for AutoScaling
   LaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
-    DependsOn: MySQLDB
     Properties:
       LaunchTemplateData:
         ImageId: ami-0cff7528ff583bf9a
@@ -184,19 +184,27 @@ Resources:
         KeyName: !Ref KeyName
         SecurityGroupIds:
           - !Ref EC2SecGrp
-        UserData: !Base64 |
-          #! /bin/bash
-          yum update -y
-          yum install python3 -y
-          yum install git -y
-          pip3 install flask
-          pip3 install flask_mysql
-          pip3 install boto3
-          cd /home/ec2-user
-          git clone https://github.com/ziyaasici/ContactListProject
-          cd ContactListProject
-          python3 fetch_rds_endpoint.py
-          python3 contact-list-app.py
+        UserData: 
+          Fn::Base64:
+            !Sub 
+              - |
+                #! /bin/bash
+                yum update -y
+                yum install python3 -y
+                yum install git -y
+                pip3 install flask
+                pip3 install flask_mysql
+                echo "${MyDBURI}" > /home/ec2-user/dbserver.endpoint
+                cd /home/ec2-user
+                git clone https://github.com/ziyaasici/ContactListProject
+                cd ContactListProject
+                python3 contact-list-app.py
+              - MyDBURI: !GetAtt MySQLDB.Endpoint.Address
+        TagSpecifications:
+          - ResourceType: instance
+            Tags: 
+              - Key: Name
+                Value: !Sub Web Server of ${AWS::StackName} Stack
       LaunchTemplateName: LaunchTemplate
       VersionDescription: 'v1'
 
@@ -314,8 +322,8 @@ Resources:
   DNSRecord:
     Type: AWS::Route53::RecordSet
     Properties:
-      HostedZoneName: zasici.com.
-      Name: project.zasici.com
+      HostedZoneName: !Ref DomainName
+      Name: !Ref Allias
       Type: A
       AliasTarget:
         HostedZoneId: !GetAtt LoadBalancer.CanonicalHostedZoneID
